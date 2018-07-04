@@ -3,25 +3,16 @@ Draws a 3d rotating cube on the freetronics OLED screen.
 Original code was found at http://forum.freetronics.com/viewtopic.php?f=37&t=5495
 Thanks to Adafruit at http://www.adafruit.com for the great display and sensor libraries
 */
-//#include <SPI.h>
-//#include <Adafruit_SSD1306.h>
-//#include <Adafruit_GFX.h>
+
 #include <Wire.h>
-#include <Arduboy2.h>
+#include "Arduboy2.h"
 
 // make an instance of arduboy used for many functions
 Arduboy2 arduboy; 
 //MPU
-const int MPU=0x68;  // I2C address of the MPU-6050
+const int MPU=0x69;  // I2C address of the MPU-6050
 int16_t AcX,AcY,AcZ,Tmp,GyX,GyY,GyZ;
- 
-//Display
-//#define OLED_RESET 4
-//Adafruit_SSD1306 display(OLED_RESET);
- 
-// OLED I2C bus address
-//#define OLED_address  0x3c
- 
+  
 float xx,xy,xz;
 float yx,yy,yz;
 float zx,zy,zz;
@@ -46,8 +37,6 @@ struct Point2d
   int x;
   int y;
 };
- 
- 
  
 int LinestoRender; // lines to render.
 int OldLinestoRender; // lines to render just in case it changes. this makes sure the old lines all get erased.
@@ -173,18 +162,16 @@ void ProcessLine(struct Line2d *ret,struct Line3d vec)
   }
 // The ifs here are checks for out of bounds. needs a bit more code here to "safe" lines that will be way out of whack, so they dont get drawn and cause screen garbage.
 }
- 
- 
- 
+  
 /***********************************************************************************************************************************/
-void setup() {
-arduboy.begin();  
-Wire.begin();
-  //display.begin(SSD1306_SWITCHCAPVCC, 0x3c);  // initialize with the I2C addr 0x3D (for the 128x64)
-  //display.clearDisplay();   // clears the screen and buffer
- arduboy.clear();
- arduboy.setFrameRate(15);
-Wire.begin();
+
+void setup()
+{
+  arduboy.begin();  
+  Wire.begin();
+  arduboy.clear();
+  arduboy.setFrameRate(15);
+  Wire.begin();
  
   fact = 180 / 3.14159265358979323846264338327950; // conversion from degrees to radians.
   
@@ -223,7 +210,6 @@ Wire.begin();
   Lines[3].p1.x=-50;
   Lines[3].p1.y=-50;
   Lines[3].p1.z=50;
- 
  
 //back face.
  
@@ -287,20 +273,22 @@ Wire.begin();
  
   LinestoRender=12;
   OldLinestoRender=LinestoRender;
+
   // Initialize MPU
   Wire.beginTransmission(MPU);
   Wire.write(0x6B);  // PWR_MGMT_1 register
   Wire.write(0);     // set to zero (wakes up the MPU-6050)
-  Wire.endTransmission(true);
-  
+  Wire.endTransmission(true);  
 }
+
 /***********************************************************************************************************************************/
-void RenderImage( void)
+
+void RenderImage(void)
 {
   // renders all the lines after erasing the old ones.
   // in here is the only code actually interfacing with the OLED. so if you use a different lib, this is where to change it.
  
-for (int i=0; i<OldLinestoRender; i++ )
+  for (int i=0; i<OldLinestoRender; i++ )
   {
    arduboy.drawLine(ORender[i].p0.x,ORender[i].p0.y,ORender[i].p1.x,ORender[i].p1.y, BLACK); // erase the old lines.
   }
@@ -340,33 +328,29 @@ for (int i=0; i<OldLinestoRender; i++ )
   arduboy.println(GyY);
   //delay(10);
 }
- 
- 
+  
 /***********************************************************************************************************************************/
  
-void loop() {
-    if (!(arduboy.nextFrame()))
-    return;
+void loop()
+{
+  if (!(arduboy.nextFrame()))
+  return;
   
   arduboy.clear();   // clears the screen and buffer  
-// PIX=GREEN; // colours of all lines drawn will be green until changed.
   
   //For cube rotation
   int xOut=0;
   int yOut=0;
   
   xOut = map(AcX,-17000,17000,-50,50);
-    yOut = map(AcY,-17000,17000,-50,50);
+  yOut = map(AcY,-17000,17000,-50,50);
   
-Xan+=xOut;
-Yan+=yOut;
-  
+  Xan+=xOut;
+  Yan+=yOut;
  
   Yan=Yan % 360;
   Xan=Xan % 360; // prevents overflow.
-  
- 
- 
+
   SetVars(); //sets up the global vars to do the conversion.
  
   for(int i=0; i<LinestoRender ; i++)
@@ -376,6 +360,5 @@ Yan+=yOut;
   }  
   
   RenderImage(); // go draw it!
-  arduboy.display();
-  
+  arduboy.display(); 
 }
